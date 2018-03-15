@@ -17,7 +17,8 @@ contract Administration {
         require(msg.sender == owner || msg.sender == admin);
         _;
     }
-
+    
+    /* solhint-disable func-visibility */
     function Administration() {
         owner = msg.sender;
         admin = msg.sender;
