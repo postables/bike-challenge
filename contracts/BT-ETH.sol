@@ -8,9 +8,9 @@ import "blah/Interfaces/ERC20Interface.sol";
 	Used to buy BT tokens for fixed rate eth
 */
 contract BTETH is Administration {
-
+	using SafeMath for uint256;
 	// 31415.9
-	uint256 public constant btEth = 31415900000000000000000;
+	uint256 public constant btWei = 31831000000000;
 
 	uint256 public remainingTokens;
 	uint256 public numBikeTokensSold;
@@ -23,8 +23,9 @@ contract BTETH is Administration {
 	// although this isn't "upgradable" it saves gas at deployment time by using a private variable, with further savings from `constant`
 	ERC20Interface private constant ercI = ERC20Interface(address(0));
 
-
 	mapping (address => uint256) public contributions;
+
+	event Sale(uint256 reward);
 
 	modifier salesDisabled() {
 		require(!enabled);
@@ -47,7 +48,7 @@ contract BTETH is Administration {
 	}
 
 	function () payable isInitialized salesEnabled {
-		contribute();
+		require(contribute());
 	}
 
 	function launch()
@@ -57,7 +58,7 @@ contract BTETH is Administration {
 		returns (bool)
 	{
 		// make sure we can sell at least one bike token
-		require(ercI.balanceOf(address(this)) > btEth);
+		require(ercI.balanceOf(address(this)) > btWei);
 		remainingTokens = ercI.balanceOf(address(this));
 		initialized = true;
 		enabled = true;
@@ -89,5 +90,21 @@ contract BTETH is Administration {
 		return true;
 	}
 
-	function contribute() internal pure {}
+	// lets someone calculate what they reward would be
+    function contributionCalculator(uint256 _eth) public view returns (uint256) {
+    	return ((_eth.mul(10)).div(btWei)).mul(10**17);
+    }
+
+	function contribute()
+		internal
+		returns (bool)
+	{
+		require(msg.value > 111100);
+		require(remainingTokens > 0);
+		uint256 reward = ((msg.value.mul(10)).div(btWei)).mul(10**17);
+		assert(reward > 0);
+		ercI.transfer(msg.sender, reward);
+		// event placeholder
+		return true;
+	}
 }
