@@ -66,9 +66,6 @@ contract BikeToken is Administration {
         public
         returns (bool approved)
     {
-        require(_spender != address(0x0));
-        require(_amount > 0);
-        require(allowed[msg.sender][_spender].add(_amount) > allowed[msg.sender][_spender]);
         allowed[msg.sender][_spender] = allowed[msg.sender][_spender].add(_amount);
         emit Approve(msg.sender, _spender, _amount);
         return true;
