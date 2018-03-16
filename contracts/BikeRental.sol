@@ -42,7 +42,6 @@ contract BikeRental is Administration {
 	mapping (uint256 => BikeStruct) public bikes;
 	mapping (address => RentalStruct) public rentals;
 
-	// this allows us to easily search for the event using the `id` topic
 	event BikeAdded(uint256 _id, uint256 _costPerDay);
 	event BikeRented(address _renter, uint256 _id, uint256 _daysRented);
 	event BikeReturned(address _renter, uint256 _bikeId, bool _late);
