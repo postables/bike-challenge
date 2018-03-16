@@ -3,7 +3,13 @@ pragma solidity 0.4.21;
 import "blah/Math/SafeMath.sol";
 import "blah/Modules/Administration.sol";
 import "Interfaces/ERC20Interface.sol";
+/*
 
+
+	When a bike is returned on time, the deposit is returns to the renter, and the cost of the rent is sent to the owner
+	Other than this, there is only one other method for funds to be withdrawn from the contract, which is when the bike is not returned.
+
+*/
 contract BikeRental is Administration {
 
 	using SafeMath for uint256;
@@ -103,18 +109,18 @@ contract BikeRental is Administration {
 		rentals[msg.sender] = RentalStruct(msg.sender, _bikeId, _deposit, cost, _daysToRent, returnDate, true);
 		emit BikeRented(msg.sender, _bikeId, _daysToRent);
 		require(ercI.transferFrom(msg.sender, address(this), _deposit));
+		require(ercI.transfer(owner, cost));
 		return true;
 	}
 
 	function returnBike(
 		uint256 _bikeId)
 		public
-		view
 		isRentingBikeId(msg.sender, _bikeId)
 		returns (bool)
 	{
 		if (now <= rentals[msg.sender].returnDate) {
-			// ontime return
+			require(onTimeReturn(_bikeId));
 			return true;
 		} else {
 			// late return
@@ -128,6 +134,7 @@ contract BikeRental is Administration {
 		returns (bool)
 	{
 		uint256 fundsReturned = rentals[msg.sender].deposit.sub(rentals[msg.sender].cost);
+		uint256 cost = rentals[msg.sender].cost;
 		/*
 			Here we can take advantage of the storage refund mechanic, and refund the user with a little bit of gas
 		*/
