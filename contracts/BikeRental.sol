@@ -131,45 +131,6 @@ contract BikeRental is Administration {
 		}
 	}
 
-	function forceLateReturn(
-		address _renter,
-		uint256 _bikeId)
-		public
-		onlyOwner
-		returns (bool)
-	{
-		require(dev);
-		uint256 remainingFunds = rentals[_renter].deposit.sub(rentals[_renter].cost);
-		/*
-			Take advantage of storage refund mechanic, and refund them with a bit of gas
-		*/
-		delete rentals[_renter];
-		bikes[_bikeId].state = defaultState;
-		emit BikeReturned(_renter, _bikeId, true);
-		require(ercI.transfer(owner, remainingFunds));
-		return true;
-	}
-
-	function forceBikeAwol(
-		address _renter,
-		uint256 _bikeId)
-		public
-		onlyOwner
-		isRentingBikeId(_renter, _bikeId)
-		returns (bool)
-	{
-		require(dev);
-		uint256 remainingFunds = rentals[_renter].deposit.sub(rentals[_renter].cost);
-		/*
-			storage refund mechanics
-		*/
-		delete rentals[_renter];
-		bikes[_bikeId].state = RentalStates.awol;
-		emit BikeAwol(_renter, _bikeId);
-		require(ercI.transfer(msg.sender, remainingFunds));
-		return true;
-	}
-
 	function bikeAwol(
 		address _renter,
 		uint256 _bikeId)
@@ -222,8 +183,17 @@ contract BikeRental is Administration {
 		return true;
 	}
 
-	function bikeExists(uint256 _id) external returns (bool) {
+	function bikeExists(uint256 _id) external view returns (bool) {
 		return bikes[_id].exists;
+	}
+
+	function checkIfRentingBikeId(address _renter, uint256 _bikeId) external view returns (bool) {
+		 if (rentals[_renter].rented == true && rentals[_renter].bikeId == _bikeId && bikes[_bikeId].state == RentalStates(1)) {
+		 	return true;
+		 } else {
+		 	return false;
+		 }
+
 	}
 
 }
