@@ -9,13 +9,14 @@ import "Interfaces/ERC20Interface.sol";
 	When a bike is returned on time, the deposit is returns to the renter, and the cost of the rent is sent to the owner
 	Other than this, there is only one other method for funds to be withdrawn from the contract, which is when the bike is not returned.
 
+	when returning a bike, instead of going straight to available, mark as returned (to do)
 */
 contract BikeRental is Administration {
 
 	using SafeMath for uint256;
 
 	uint256 public bikeCount;
-
+	bool	public dev = true;
 	RentalStates private defaultState = RentalStates.available;
 	ERC20Interface private ercI = ERC20Interface(address(0));
 
@@ -44,7 +45,7 @@ contract BikeRental is Administration {
 	// this allows us to easily search for the event using the `id` topic
 	event BikeAdded(uint256 _id, uint256 _costPerDay);
 	event BikeRented(address _renter, uint256 _id, uint256 _daysRented);
-	event BikeReturned(address _renter, uint256 _bikeId);
+	event BikeReturned(address _renter, uint256 _bikeId, bool _late);
 	event ErcInterfaceSet();
 
 	modifier bikeAvailable(uint256 _bikeId) {
@@ -57,8 +58,9 @@ contract BikeRental is Administration {
 		_;
 	}
 
+	// this prevents someone from running the return function if the bike went awol and they failed to show up
 	modifier isRentingBikeId(address _renter, uint256 _bikeId) {
-		require(rentals[_renter].rented == true && rentals[_renter].bikeId == _bikeId);
+		require(rentals[_renter].rented == true && rentals[_renter].bikeId == _bikeId && bikes[_bikeId].state == RentalStates(1));
 		_;
 	}
 
@@ -109,7 +111,7 @@ contract BikeRental is Administration {
 		rentals[msg.sender] = RentalStruct(msg.sender, _bikeId, _deposit, cost, _daysToRent, returnDate, true);
 		emit BikeRented(msg.sender, _bikeId, _daysToRent);
 		require(ercI.transferFrom(msg.sender, address(this), _deposit));
-		require(ercI.transfer(owner, cost));
+		require(ercI.transferFrom(msg.sender, owner, cost));
 		return true;
 	}
 
@@ -123,9 +125,28 @@ contract BikeRental is Administration {
 			require(onTimeReturn(_bikeId));
 			return true;
 		} else {
-			// late return
+			require(lateReturn(_bikeId));
 			return true;
 		}
+	}
+
+	function forceLateReturn(
+		address _renter,
+		uint256 _bikeId)
+		public
+		onlyOwner
+		returns (bool)
+	{
+		require(dev);
+		uint256 remainingFunds = rentals[_renter].deposit.sub(rentals[_renter].cost);
+		/*
+			Take advantage of storage refund mechanic, and refund them with a bit of gas
+		*/
+		delete rentals[_renter];
+		bikes[_bikeId].state = defaultState;
+		emit BikeReturned(_renter, _bikeId, true);
+		require(ercI.transfer(owner, remainingFunds));
+		return true;
 	}
 
 	function onTimeReturn(
@@ -134,13 +155,29 @@ contract BikeRental is Administration {
 		returns (bool)
 	{
 		uint256 fundsReturned = rentals[msg.sender].deposit.sub(rentals[msg.sender].cost);
-		uint256 cost = rentals[msg.sender].cost;
 		/*
 			Here we can take advantage of the storage refund mechanic, and refund the user with a little bit of gas
 		*/
 		delete rentals[msg.sender];
-		emit BikeReturned(msg.sender, _bikeId);
+		bikes[_bikeId].state = defaultState;
+		emit BikeReturned(msg.sender, _bikeId, false);
 		require(ercI.transfer(msg.sender, fundsReturned));
+		return true;
+	}
+
+	function lateReturn(
+		uint256 _bikeId)
+		internal
+		returns (bool)
+	{
+		uint256 remainingFunds = rentals[msg.sender].deposit.sub(rentals[msg.sender].cost);
+		/*
+			Take advantage of storage refund mechanic, and refund them with a bit of gas
+		*/
+		delete rentals[msg.sender];
+		bikes[_bikeId].state = defaultState;
+		emit BikeReturned(msg.sender, _bikeId, true);
+		require(ercI.transfer(owner, remainingFunds));
 		return true;
 	}
 
