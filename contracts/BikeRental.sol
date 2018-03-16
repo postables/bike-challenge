@@ -26,6 +26,7 @@ contract BikeRental is Administration {
 		address renter;
 		uint256 bikeId;
 		uint256 deposit;
+		uint256 cost;
 		uint256 daysRented;
 		uint256 returnDate;
 		bool	rented;
@@ -37,6 +38,7 @@ contract BikeRental is Administration {
 	// this allows us to easily search for the event using the `id` topic
 	event BikeAdded(uint256 _id, uint256 _costPerDay);
 	event BikeRented(address _renter, uint256 _id, uint256 _daysRented);
+	event BikeReturned(address _renter, uint256 _bikeId);
 	event ErcInterfaceSet();
 
 	modifier bikeAvailable(uint256 _bikeId) {
@@ -94,10 +96,11 @@ contract BikeRental is Administration {
 	{
 		// they must deposit 3 times the cost of the bike, if returned within time they 2/3 of their money back
 		require(_deposit == (bikes[_bikeId].costPerDay.mul(_daysToRent)).mul(3));
+		uint256 cost = bikes[_bikeId].costPerDay.mul(_daysToRent);
 		uint256 returnDate = _daysToRent.mul(1 days);
 		returnDate = now.add(returnDate);
 		bikes[_bikeId].state = RentalStates(1);
-		rentals[msg.sender] = RentalStruct(msg.sender, _bikeId, _deposit, _daysToRent, returnDate, true);
+		rentals[msg.sender] = RentalStruct(msg.sender, _bikeId, _deposit, cost, _daysToRent, returnDate, true);
 		emit BikeRented(msg.sender, _bikeId, _daysToRent);
 		require(ercI.transferFrom(msg.sender, address(this), _deposit));
 		return true;
@@ -119,4 +122,32 @@ contract BikeRental is Administration {
 		}
 	}
 
+	function onTimeReturn(
+		uint256 _bikeId)
+		internal
+		returns (bool)
+	{
+		uint256 fundsReturned = rentals[msg.sender].deposit.sub(rentals[msg.sender].cost);
+		/*
+			Here we can take advantage of the storage refund mechanic, and refund the user with a little bit of gas
+		*/
+		delete rentals[msg.sender];
+		emit BikeReturned(msg.sender, _bikeId);
+		require(ercI.transfer(msg.sender, fundsReturned));
+		return true;
+	}
+
 }
+
+/*
+
+	struct RentalStruct {
+		address renter;
+		uint256 bikeId;
+		uint256 deposit;
+		uint256 cost;
+		uint256 daysRented;
+		uint256 returnDate;
+		bool	rented;
+	}
+*/
