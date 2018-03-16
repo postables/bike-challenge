@@ -1,8 +1,8 @@
 pragma solidity 0.4.21;
 
-import "blah/Modules/Administration.sol";
-import "blah/Math/SafeMath.sol";
-import "blah/Interfaces/ERC20Interface.sol";
+import "Modules/Administration.sol";
+import "Math/SafeMath.sol";
+import "Interfaces/ERC20Interface.sol";
 
 /*
 	Used to buy BT tokens for fixed rate eth
@@ -20,8 +20,7 @@ contract BTETH is Administration {
 	bool public enabled;
 	bool private initialized;
 
-	// although this isn't "upgradable" it saves gas at deployment time by using a private variable, with further savings from `constant`
-	ERC20Interface private constant ercI = ERC20Interface(address(0x22227de0e90c3c334023fe63865849ecda4b588b));
+	ERC20Interface private ercI;
 
 	mapping (address => uint256) public contributions;
 
@@ -77,7 +76,7 @@ contract BTETH is Administration {
 		returns (bool)
 	{
 		enabled = true;
-		emit SalesEnabled()
+		emit SalesEnabled();
 		return true;
 	}
 
@@ -116,7 +115,7 @@ contract BTETH is Administration {
 	}
 
 	// lets someone calculate what they reward would be
-    function contributionCalculator(uint256 _eth) public view returns (uint256) {
+    function contributionCalculator(uint256 _eth) public pure returns (uint256) {
     	return ((_eth.mul(10)).div(btWei)).mul(10**17);
     }
 

@@ -1,7 +1,7 @@
 pragma solidity 0.4.21;
 
-import "blah/Math/SafeMath.sol";
-import "blah/Modules/Administration.sol";
+import "Math/SafeMath.sol";
+import "Modules/Administration.sol";
 
 contract BikeToken is Administration {
 
