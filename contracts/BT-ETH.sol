@@ -21,11 +21,14 @@ contract BTETH is Administration {
 	bool private initialized;
 
 	// although this isn't "upgradable" it saves gas at deployment time by using a private variable, with further savings from `constant`
-	ERC20Interface private constant ercI = ERC20Interface(address(0));
+	ERC20Interface private constant ercI = ERC20Interface(address(0x22227de0e90c3c334023fe63865849ecda4b588b));
 
 	mapping (address => uint256) public contributions;
 
-	event Sale(uint256 reward);
+	event TokensSold(address indexed _purchaser, uint256 _contribution);
+	event ContractLaunchedAndEnabled();
+	event SalesDisabled();
+	event SalesEnabled();
 
 	modifier salesDisabled() {
 		require(!enabled);
@@ -62,7 +65,7 @@ contract BTETH is Administration {
 		remainingTokens = ercI.balanceOf(address(this));
 		initialized = true;
 		enabled = true;
-		// event placeholder
+		emit ContractLaunchedAndEnabled();
 		return true;
 	}
 
@@ -74,7 +77,7 @@ contract BTETH is Administration {
 		returns (bool)
 	{
 		enabled = true;
-		// event placeholder
+		emit SalesEnabled()
 		return true;
 	}
 
@@ -86,7 +89,29 @@ contract BTETH is Administration {
 		returns (bool)
 	{
 		enabled = false;
-		// event placeholder
+		emit SalesDisabled();
+		return true;
+	}
+
+	function contribute()
+		internal
+		returns (bool)
+	{
+		require(msg.value > 0);
+		require(remainingTokens > 0);
+		uint256 reward = ((msg.value.mul(10)).div(btWei)).mul(10**17);
+		assert(reward > 0);
+		contributions[msg.sender] = contributions[msg.sender].add(reward);
+		remainingTokens = remainingTokens.sub(reward);
+		numBikeTokensSold = numBikeTokensSold.add(reward);
+		numContributions = numContributions.add(1);
+		// if there are no more tokens left, disable sales
+		if (remainingTokens == 0) {
+			enabled = false;
+			emit SalesDisabled();
+		}
+		emit TokensSold(msg.sender, reward);
+		require(ercI.transfer(msg.sender, reward));
 		return true;
 	}
 
@@ -95,16 +120,4 @@ contract BTETH is Administration {
     	return ((_eth.mul(10)).div(btWei)).mul(10**17);
     }
 
-	function contribute()
-		internal
-		returns (bool)
-	{
-		require(msg.value > 111100);
-		require(remainingTokens > 0);
-		uint256 reward = ((msg.value.mul(10)).div(btWei)).mul(10**17);
-		assert(reward > 0);
-		ercI.transfer(msg.sender, reward);
-		// event placeholder
-		return true;
-	}
 }
