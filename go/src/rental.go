@@ -4,9 +4,10 @@
 package main
 
 import (
-	"fmt"
 	"math/big"
 	"strings"
+	"log"
+	"fmt"
 
 	ethereum "github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -18,10 +19,20 @@ import (
 )
 
 func main() {
-	_, err := ethclient.Dial("/hoaame/solidity/Documents/Code/Postables/Sidechain-Bridge/poa/node1/geth.ipc")
+	conn, err := ethclient.Dial("/home/solidity/Documents/Code/Postables/Sidechain-Bridge/poa/node1/geth.ipc")
 	if err != nil {
-		fmt.Printf("error detected")
+		log.Fatalf("error detected")
 	}
+	// instantiate contract instance
+	rental, err := NewRental(common.HexToAddress("0x8181163d5E58EE06AFEEf180e66B703bc4cfa026"), conn)
+	if err != nil {
+		log.Fatalf("error detected connecting to relay")
+	}
+	owner, err := rental.Owner(nil)
+	if err != nil {
+		log.Fatalf("failure to retrieve token owner")
+	}
+	fmt.Println("Owner:", owner)
 }
 
 // RentalABI is the input ABI used to generate the binding from.
