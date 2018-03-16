@@ -46,6 +46,7 @@ contract BikeRental is Administration {
 	event BikeAdded(uint256 _id, uint256 _costPerDay);
 	event BikeRented(address _renter, uint256 _id, uint256 _daysRented);
 	event BikeReturned(address _renter, uint256 _bikeId, bool _late);
+	event BikeAwol(address _renter, uint256 _bikeId);
 	event ErcInterfaceSet();
 
 	modifier bikeAvailable(uint256 _bikeId) {
@@ -146,6 +147,46 @@ contract BikeRental is Administration {
 		bikes[_bikeId].state = defaultState;
 		emit BikeReturned(_renter, _bikeId, true);
 		require(ercI.transfer(owner, remainingFunds));
+		return true;
+	}
+
+	function forceBikeAwol(
+		address _renter,
+		uint256 _bikeId)
+		public
+		onlyOwner
+		isRentingBikeId(_renter, _bikeId)
+		returns (bool)
+	{
+		require(dev);
+		uint256 remainingFunds = rentals[_renter].deposit.sub(rentals[_renter].cost);
+		/*
+			storage refund mechanics
+		*/
+		delete rentals[_renter];
+		bikes[_bikeId].state = RentalStates.awol;
+		emit BikeAwol(_renter, _bikeId);
+		require(ercI.transfer(msg.sender, remainingFunds));
+		return true;
+	}
+
+	function bikeAwol(
+		address _renter,
+		uint256 _bikeId)
+		public
+		onlyOwner
+		isRentingBikeId(_renter, _bikeId)
+		returns (bool)
+	{
+		require(now >= rentals[_renter].returnDate.add(30 days));
+		uint256 remainingFunds = rentals[_renter].deposit.sub(rentals[_renter].cost);
+		/*
+			storage refund mechanics
+		*/
+		delete rentals[_renter];
+		bikes[_bikeId].state = RentalStates.awol;
+		emit BikeAwol(_renter, _bikeId);
+		require(ercI.transfer(msg.sender, remainingFunds));
 		return true;
 	}
 
