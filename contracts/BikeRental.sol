@@ -32,11 +32,12 @@ contract BikeRental is Administration {
 	}
 
 	mapping (uint256 => BikeStruct) public bikes;
-	mapping (address => RentalStruct) private rentals;
+	mapping (address => RentalStruct) public rentals;
 
 	// this allows us to easily search for the event using the `id` topic
 	event BikeAdded(uint256 _id, uint256 _costPerDay);
 	event BikeRented(address _renter, uint256 _id, uint256 _daysRented);
+	event ErcInterfaceSet();
 
 	modifier bikeAvailable(uint256 _bikeId) {
 		require(bikes[_bikeId].state == RentalStates(0) && bikes[_bikeId].exists == true);
@@ -56,6 +57,17 @@ contract BikeRental is Administration {
 	modifier notRenting(address _renter) {
 		require(!rentals[_renter].rented);
 		_;
+	}
+
+	function setErcInterface(
+		address _bikeTokenContractAddress)
+		public
+		onlyOwner
+		returns (bool)
+	{
+		ercI = ERC20Interface(_bikeTokenContractAddress);
+		emit ErcInterfaceSet();
+		return true;
 	}
 
 	function addBike(
