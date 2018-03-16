@@ -84,6 +84,7 @@ contract BikeRental is Administration {
 		uint256 _bikeId,
 		uint256 _costPerDay)
 		public
+		onlyOwner
 		bikeNotAdded(_bikeId)
 		returns (bool)
 	{
@@ -219,6 +220,10 @@ contract BikeRental is Administration {
 		emit BikeReturned(msg.sender, _bikeId, true);
 		require(ercI.transfer(owner, remainingFunds));
 		return true;
+	}
+
+	function bikeExists(uint256 _id) external returns (bool) {
+		return bikes[_id].exists;
 	}
 
 }
