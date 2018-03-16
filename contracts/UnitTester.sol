@@ -108,6 +108,7 @@ contract UnitTester {
 		}
 		tokenContract = a;
 		emit ContractCreated(a, "token contract");
+		ercI = ERC20Interface(tokenContract);
 		assert(a != address(0));
 	}
 
@@ -119,6 +120,7 @@ contract UnitTester {
 		}
 		saleContract = a;
 		emit ContractCreated(a, "token sale contract");
+		btI = BtEthInterface(saleContract);
 		assert(a != address(0));
 	}
 
@@ -130,7 +132,13 @@ contract UnitTester {
 		}
 		rentalContract = a;
 		emit ContractCreated(a, "bike rental contract");
+		brI = BikeRentalInterface(a);
 		assert(a != address(0));
 	}
 
 }
+/*
+	ERC20Interface public ercI;
+	BikeRentalInterface public brI;
+	BtEthInterface public btI;
+*/
