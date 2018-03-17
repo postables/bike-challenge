@@ -18,7 +18,7 @@ contract BTETH is Administration {
 	uint256 public ethRaised;
 
 	bool public enabled;
-	bool private initialized;
+	bool public initialized;
 
 	ERC20Interface private ercI;
 

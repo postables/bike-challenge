@@ -52,6 +52,13 @@ contract UnitTester {
 		return true;
 	}
 
+	function testTransferFrom(address _owner, address _recipient, uint256 _amount) public returns (bool) {
+		require(ercI.transferFrom(_owner, _recipient, _amount));
+		emit TestPassed("token transfer from test");
+		assert(ercI.balanceOf(_recipient) == _amount);
+		return true;
+	}
+
 	function testTokenApproval(address _spender, uint256 _amount) public returns (bool) {
 		require(ercI.approve(_spender, _amount));
 		emit TestPassed("token approval test");
@@ -59,10 +66,13 @@ contract UnitTester {
 		return true;
 	}
 
+	// not working, just made modification need to test
+	// this is probably because we were querying initialized which was
+	// previously marked as private
 	function testLaunchBtEth() public returns (bool) {
 		require(btI.launch());
 		emit TestPassed("BT-ETH initialization test");
-		assert(btI.initialized() && btI.enabled());
+		assert(btI.initialized() == true && btI.enabled() == true);
 		return true;
 	}
 
