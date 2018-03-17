@@ -2,9 +2,10 @@ package main
 import (
 	"fmt"
 	"log"
-	
+	"math/big"
+
 	"strings"
-	//"time"
+	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -21,67 +22,37 @@ func main() {
 		log.Fatalf("error connecting")
 	}
 	// authorize a conenction so we can deploy stuff and change states
-	_, err = bind.NewTransactor(strings.NewReader(key), "password123")
+	auth, err := bind.NewTransactor(strings.NewReader(key), "password123")
 	if err != nil {
 		log.Fatalf("error unlocking account")
 	}
 
-	sale, err := bt_eth.NewBtEth(common.HexToAddress("0xd97437da366c75bf4d0508adb8d323dbb70c7cee"), conn)
+	rental, err := bike_rental.NewBikeRental(common.HexToAddress("0x78d85767288fa002fa584336e35458bb4beb61e0"), conn)
 	if err != nil {
 		log.Fatalf("error connecting to sale contract")
 	}
 
-	owner, err := sale.Owner(nil)
+	count, err := rental.BikeCount(nil)
 	if err != nil {
-		log.Fatalf("error reading owner")
+		log.Fatalf("error reading bike count")
 	}
-	fmt.Printf("Owner Address: 0x%x\n", owner)
+	fmt.Printf("Bike Count %v\n", count)
 
-	remainingTokens, err := sale.RemainingTokens(nil)
-	if err != nil {
-		log.Fatalf("error reading remaining tokens")
+	if count == big.NewInt(0) {
+		fmt.Printf("Adding bike\n")
+		tx, err := rental.AddBike(auth, big.NewInt(100), big.NewInt(500000))
+		if err != nil {
+			log.Fatalf("error adding bike, try increasing the bike identifier")
+		}
+		time.Sleep(250 * time.Millisecond)
+		fmt.Printf("Transaction hash 0x%x\n", tx.Hash())
+	} else {
+		fmt.Printf("bike already added so we arent adding one \n")
 	}
-	fmt.Printf("Remaining Tokens %v\n", remainingTokens)
 
-	tokensSold, err := sale.NumBikeTokensSold(nil)
+	bike, err := rental.Bikes(nil, big.NewInt(1))
 	if err != nil {
-		log.Fatalf(" error reading tokens sold")
+		log.Fatalf("error retrieving bike struct")
 	}
-	fmt.Printf("Tokens Sold %v\n", tokensSold)
-
-	numberContributions, err := sale.NumContributions(nil)
-	if err != nil {
-		log.Fatalf("error reading number  contributions")
-	}
-	fmt.Printf("number of contributions %v\n", numberContributions)
-
-	ethRaised, err := sale.EthRaised(nil)
-	if err != nil {
-		log.Fatalf("error reading eth raised")
-	}
-	fmt.Printf("eth raised %v\n", ethRaised)
-
-	enabled, err := sale.Enabled(nil)
-	if err != nil {
-		log.Fatalf("error reading enabled status")
-	}
-	fmt.Printf("Contract enabled %v\n",  enabled)
-
-	initialized, err := sale.Initialized(nil)
-	if err != nil {
-		log.Fatalf("error reading initalized")
-	}
-	fmt.Printf("contract initialized %v\n", initialized)
-
-	btWei, err := sale.BtWei(nil)
-	if err != nil {
-		log.Fatalf("error reading btwei")
-	}
-	fmt.Printf("bt wei %v\n", btWei)  
-
-	contribution, err := sale.Contributions(nil, owner)
-	if err != nil {
-		fmt.Printf("error reading contribution")
-	}
-	fmt.Printf("Contribution for 0x%x %v\n", owner, contribution)
+	fmt.Printf("Bike Struct %v\n", bike)
 }
