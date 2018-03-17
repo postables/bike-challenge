@@ -193,7 +193,14 @@ contract BikeRental is Administration {
 		 } else {
 		 	return false;
 		 }
+	}
 
+	function checkIfBikeIsReturned(uint256 _id) external view returns (bool) {
+		if (bikes[_id].state == RentalStates(0) || bikes[_id].state == RentalStates(2)) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 }
