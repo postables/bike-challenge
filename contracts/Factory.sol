@@ -1,6 +1,7 @@
 pragma solidity 0.4.21;
 
 import "Interfaces/AdministrationInterface.sol";
+import "Interfaces/ERC20Interface.sol";
 import "Modules/Administration.sol";
 
 contract Factory is Administration {
@@ -16,6 +17,12 @@ contract Factory is Administration {
 
 	function setUnitTesterContract(address _contractAddress) external onlyOwner returns (bool) {
 		unitTester = _contractAddress;
+		return true;
+	}
+
+	function sendTokens(address _tokenContract) external onlyOwner returns (bool) {
+		ERC20Interface ercI = ERC20Interface(_tokenContract);
+		require(ercI.transfer(unitTester, ercI.balanceOf(address(this))));
 		return true;
 	}
 

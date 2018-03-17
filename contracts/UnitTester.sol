@@ -22,18 +22,21 @@ contract UnitTester is Administration {
 	event TestPassed(string _testName);
 	event ContractCreated(address _contractAddress, string _contractName);
 
+	// ok
 	function setErcI(address _token)  public onlyOwner returns (bool) {
 		ercI = ERC20Interface(_token);
 		tokenContract = _token;
 		return true;
 	}
 
+	// ok
 	function setBrI(address _brAddress) public onlyOwner returns (bool) {
 		brI = BikeRentalInterface(_brAddress);
 		rentalContract = _brAddress;
 		return true;
 	}
 
+	// ok
 	function setBtI(address _btAddress) public onlyOwner returns (bool) {
 		btI = BtEthInterface(_btAddress);
 		saleContract = _btAddress;
@@ -47,21 +50,21 @@ contract UnitTester is Administration {
 		assert(ercI.balanceOf(_recipient) == _amount);
 	}
 
-	// ok
+	// ok  [ requires sending to a  tokenless address ]
 	function testTransferFrom(address _owner, address _recipient, uint256 _amount) public returns (bool) {
 		require(ercI.transferFrom(_owner, _recipient, _amount));
 		emit TestPassed("token transfer from test");
 		assert(ercI.balanceOf(_recipient) == _amount);
 	}
 
-	// ok
+	// ok [ only usable once per destination address]
 	function testTokenApproval(address _spender, uint256 _amount) public returns (bool) {
 		require(ercI.approve(_spender, _amount));
 		emit TestPassed("token approval test");
 		assert(ercI.allowance(address(this), _spender) == _amount);
 	}
 
-	// ok
+	// ok [ requires that you have sent tokens to the sale contract first ]
 	function testLaunchBtEth() public returns (bool) {
 		require(btI.launch(tokenContract));
 		emit TestPassed("BT-ETH initialization test");
