@@ -2,7 +2,7 @@ package main
 import (
 	"fmt"
 	"log"
-	//"math/big"
+	
 	"strings"
 	"time"
 
@@ -20,7 +20,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error connecting")
 	}
-	// authorize a conenction so we can deploy stuff
+	// authorize a conenction so we can deploy stuff and change states
 	auth, err := bind.NewTransactor(strings.NewReader(key), "password123")
 	if err != nil {
 		log.Fatalf("error unlocking account")
@@ -74,4 +74,5 @@ func main() {
 		log.Fatalf("error reading balance of contract owner")
 	}
 	fmt.Printf("Owner balance: %v\n", ownerBalance)
+
 }
