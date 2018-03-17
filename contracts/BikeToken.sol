@@ -17,7 +17,7 @@ contract BikeToken is Administration {
 
     event Transfer(address indexed _sender, address indexed _recipient, uint256 _amount);
     event Approve(address indexed _owner, address indexed _spender, uint256 _amount);
-
+    
     /* solhint-disable func-visibility */
     function BikeToken() {
         name = "BikeToken";

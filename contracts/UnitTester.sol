@@ -112,45 +112,4 @@ contract UnitTester is Administration {
 		emit TestPassed("bike return test");
 		assert(brI.checkIfBikeIsReturned(_bikeId));
 	}
-
-/*
-	// ok
-	function deployTokenContract() external returns (bool) {
-		bytes memory _code = bikeTokenContract;
-		address a;
-		assembly {
-			a := create(0, add(_code, 0x20), mload(_code))
-		}
-		tokenContract = a;
-		emit ContractCreated(a, "token contract");
-		ercI = ERC20Interface(tokenContract);
-		assert(a != address(0));
-	}
-
-	// ok
-	function deploySaleContract() external returns (bool) {
-		bytes memory _code = btEthContract;
-		address a;
-		assembly {
-			a := create(0, add(_code, 0x20), mload(_code))
-		}
-		saleContract = a;
-		emit ContractCreated(a, "token sale contract");
-		btI = BtEthInterface(saleContract);
-		assert(a != address(0));
-	}
-
-	// ok
-	function deployRentalContract() external returns (bool) {
-		bytes memory _code = bikeRentalContract;
-		address a;
-		assembly {
-			a := create(0, add(_code, 0x20), mload(_code))
-		}
-		rentalContract = a;
-		emit ContractCreated(a, "bike rental contract");
-		brI = BikeRentalInterface(a);
-		assert(a != address(0));
-	}
-*/
 }
