@@ -53,12 +53,14 @@ contract BTETH is Administration {
 		require(contribute());
 	}
 
-	function launch()
+	function launch(
+		address _tokenAddress)
 		public
 		onlyOwner
 		isUninitialized
 		returns (bool)
 	{
+		ercI = ERC20Interface(_tokenAddress);
 		// make sure we can sell at least one bike token
 		require(ercI.balanceOf(address(this)) > btWei);
 		remainingTokens = ercI.balanceOf(address(this));
@@ -117,6 +119,14 @@ contract BTETH is Administration {
 	// lets someone calculate what they reward would be
     function contributionCalculator(uint256 _eth) public pure returns (uint256) {
     	return ((_eth.mul(10)).div(btWei)).mul(10**17);
+    }
+
+    function checkIfLaunched() public view returns (bool) {
+    	if (initialized == true && enabled == true) {
+    		return true;
+    	} else {
+    		return false;
+    	}
     }
 
 }
